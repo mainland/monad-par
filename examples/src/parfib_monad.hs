@@ -6,10 +6,10 @@ import GHC.Conc
 #ifdef PARSCHED 
 import PARSCHED
 #else
--- import Control.Monad.Par
+import Control.Monad.Par
 -- import Control.Monad.Par.Scheds.ContFree
 -- import Control.Monad.Par.Scheds.IOThreads
-import Control.Monad.Par.Scheds.Direct
+-- import Control.Monad.Par.Scheds.Direct
 #endif
 
 type FibType = Int64
