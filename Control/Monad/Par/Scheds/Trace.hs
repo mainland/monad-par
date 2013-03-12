@@ -13,7 +13,8 @@
 module Control.Monad.Par.Scheds.Trace (
     Par, runPar, fork,
     IVar, new, newFull, newFull_, get, put, put_,
-    spawn, spawn_, spawnP 
+    spawn, spawn_, spawnP,
+    isHungry
   ) where
 
 import qualified Control.Monad.Par.Class as PC
@@ -47,6 +48,9 @@ instance PC.ParFuture Par IVar where
   spawn  = spawn
   spawn_ = spawn_
   spawnP = spawnP
+
+instance PC.ParHungry Par IVar where
+  isHungry = isHungry
 
 instance PC.ParIVar Par IVar where 
   fork = fork 

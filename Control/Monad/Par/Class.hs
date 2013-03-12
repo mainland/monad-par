@@ -20,6 +20,8 @@ module Control.Monad.Par.Class
     ParFuture(..)
   -- * IVars
   , ParIVar(..)
+  -- * Hungry check
+  , ParHungry(..)
   -- * Channels (Streams)
   , ParChan(..)
 -- define DIST_MONAD_PAR
@@ -71,6 +73,9 @@ class ParFuture m ivar => ParIVar m ivar | m -> ivar where
   -- necessary in most cases).
   --  yield  :: m ()
 
+
+class ParIVar m ivar => ParHungry m ivar | m -> ivar where
+    isHungry :: m Bool
 
 -- | @ParChan@ provides communication via streams of values between
 --   computations in a Par monad.  Channels in this case are split

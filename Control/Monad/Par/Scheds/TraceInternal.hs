@@ -14,6 +14,7 @@ module Control.Monad.Par.Scheds.TraceInternal (
    sched,
    runPar, runParAsync, runParAsyncHelper,
    new, newFull, newFull_, get, put_, put,
+   isHungry,
    pollIVar, yield,
  ) where
 
@@ -30,6 +31,8 @@ import Data.Array
 import Data.List (partition, find)
 --import Text.Printf
 
+import Debug.Trace (traceEvent)
+
 
 -- ---------------------------------------------------------------------------
 -- MAIN SCHEDULING AND RUNNING
@@ -41,6 +44,7 @@ data Trace = forall a . Get (IVar a) (a -> Trace)
            | Fork Trace Trace
            | Done
            | Yield Trace
+           | IsHungry (Bool -> Trace)
 
 data Sched = Sched
   { no          :: {-# UNPACK #-} !ThreadNumber,
@@ -141,6 +145,10 @@ sched _doSync wl q@Sched{status, workpool} queueref uid t = loop t
         -- This would also be a chance to steal and work from opposite ends of the queue.
         atomicModifyIORef queueref $ \ts -> (ts++[parent],())
         go
+
+    IsHungry c -> do
+      isEmpty <- readIORef workpool >>= isWorkPoolEmpty
+      loop (c isEmpty)
   go = do
     mt <- atomicPopIORef queueref
     case mt of
@@ -336,6 +344,16 @@ wpRemoveWork uid pRef = atomicModifyIORef pRef f
             let (p'', cr'') = f p'
             in (Work uid' cr' wq' p'', cr'')
         f NoWork = error "Impossible state in wpRemoveWork"
+
+isWorkPoolEmpty :: WorkPool -> IO Bool
+isWorkPoolEmpty NoWork =
+    return True
+
+isWorkPoolEmpty (Work _ _ wqref wp) = do
+    ts <- readIORef wqref
+    if null ts
+      then isWorkPoolEmpty wp
+      else return False
 
 
 -- ---------------------------------------------------------------------------
@@ -593,3 +611,6 @@ put v a = deepseq a (Par $ \c -> Put v a (c ()))
 
 yield :: Par ()
 yield = Par $ \c -> Yield (c ())
+
+isHungry :: Par Bool
+isHungry = Par $ \c -> IsHungry c

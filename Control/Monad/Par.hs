@@ -138,6 +138,8 @@ module Control.Monad.Par
   -- 
   -- >  spawnP = spawn . return
 
+  isHungry,
+
   module Control.Monad.Par.Combinator
   -- | This module also reexports the Combinator library for backwards
   --   compatibility with version 0.1.
